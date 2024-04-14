@@ -1,0 +1,66 @@
+server:
+  port: 8080
+  
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: paytm-app
+          uri: lb://PAYTM-APP
+          predicates:
+            - Path=/paytm/**
+          filters:
+            - AuthenticationFilter
+
+
+        - id: bank-service
+          uri: lb://BANK-SERVICE
+          predicates:
+            - Path=/bank/**
+          filters:
+            - AuthenticationFilter
+
+
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+  endpoint:
+    loggers:
+      enabled: false
+  tracing:
+    sampling:
+      probability: 1.0
+  metrics:
+    tags:
+      application: PAYTM-GATEWAY
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+            
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetchRegistry: true
+    registerWithEureka: true
+  instance:
+    hostname: localhost
+
+
+logging:
+    pattern:
+        level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+        
+info:
+  app:
+    name: ${spring.application.name}
+
